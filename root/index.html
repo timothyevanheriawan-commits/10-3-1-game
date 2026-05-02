@@ -1,0 +1,456 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700&family=Kaisei+Opti:wght@400;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+:root{
+  --ink:#1a1612;
+  --washi:#f4efe6;
+  --paper:#ebe4d8;
+  --paper-mid:#e2d9ca;
+  --red:#b83228;
+  --red-soft:rgba(184,50,40,.1);
+  --indigo:#2c3e6b;
+  --muted:#7a6f63;
+}
+
+body,html{margin:0;padding:0;background:var(--washi);}
+
+#gr{
+  background:var(--washi);
+  font-family:'Noto Serif JP',serif;
+  color:var(--ink);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:28px 16px 40px;
+  /* No min-height — height is content-driven */
+}
+
+/* HEADER */
+.hdr{text-align:center;margin-bottom:24px;}
+.hdr-eyebrow{font-size:10px;letter-spacing:5px;color:var(--red);margin-bottom:6px;}
+.hdr-title{font-family:'Kaisei Opti',serif;font-size:clamp(28px,6vw,36px);font-weight:700;color:var(--ink);letter-spacing:-0.5px;line-height:1;}
+.hdr-rule{width:40px;height:1.5px;background:var(--red);margin:10px auto 0;}
+
+/* TARGET */
+.tgt-wrap{text-align:center;margin-bottom:20px;}
+.tgt-label{font-size:10px;letter-spacing:3px;color:var(--muted);margin-bottom:6px;}
+.tgt-num{font-family:'Kaisei Opti',serif;font-size:clamp(40px,10vw,52px);font-weight:700;color:var(--ink);line-height:1;}
+.tgt-under{width:48px;height:2px;background:var(--ink);margin:8px auto 0;}
+
+/* STATS */
+.stats{display:flex;justify-content:center;gap:clamp(16px,6vw,32px);margin-bottom:8px;}
+.stat{text-align:center;}
+.stat-n{font-family:'Kaisei Opti',serif;font-size:18px;font-weight:700;color:var(--ink);display:block;line-height:1.2;}
+.stat-l{font-size:10px;letter-spacing:2px;color:var(--muted);}
+
+/* PROGRESS */
+.pb-wrap{width:100%;max-width:420px;height:2px;background:var(--paper-mid);margin-bottom:20px;border-radius:1px;}
+.pb-fill{height:100%;background:var(--red);border-radius:1px;transition:width .5s ease;}
+
+/* SELECTION */
+.sel-area{
+  min-height:38px;display:flex;align-items:center;justify-content:center;
+  gap:6px;margin-bottom:6px;flex-wrap:wrap;padding:0 8px;
+  width:100%;max-width:420px;
+}
+.sel-tok{
+  font-family:'Kaisei Opti',serif;font-size:15px;color:var(--indigo);
+  padding:4px 12px;border:1px solid var(--indigo);border-radius:4px;
+  animation:pop .15s ease;white-space:nowrap;
+}
+.sel-arrow{font-size:11px;color:var(--muted);}
+.sel-placeholder{font-size:12px;letter-spacing:2px;color:var(--muted);}
+@keyframes pop{from{transform:scale(.9);opacity:0;}to{transform:scale(1);opacity:1;}}
+
+/* RESULT MSG */
+.res-msg{
+  text-align:center;height:18px;font-size:12px;letter-spacing:1px;
+  color:transparent;margin-bottom:14px;transition:color .2s;
+  width:100%;max-width:420px;
+}
+.res-msg.wrong{color:var(--red);}
+.res-msg.ok{color:#3d6b3a;}
+
+/* TILE GRID */
+.tiles-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:clamp(6px,2vw,10px);
+  width:100%;max-width:420px;
+  margin-bottom:20px;
+}
+
+.tile{
+  min-height:56px;
+  aspect-ratio:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  background:var(--paper);
+  border:1px solid var(--paper-mid);
+  border-radius:8px;
+  transition:transform .12s ease,box-shadow .12s ease,background .12s ease;
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+.tile:hover:not(.sel){background:#ddd4c0;transform:translateY(-2px);box-shadow:0 4px 12px rgba(26,22,18,.12);}
+.tile.sel{background:var(--ink);border-color:var(--ink);transform:translateY(-2px);box-shadow:0 4px 16px rgba(26,22,18,.22);}
+
+.tile-label{
+  font-family:'Kaisei Opti',serif;
+  font-size:clamp(14px,3.5vw,18px);
+  font-weight:700;
+  color:var(--ink);
+  line-height:1;
+  display:flex;
+  align-items:baseline;
+  gap:1px;
+  white-space:nowrap;
+}
+.tile-label .t-op{font-size:.75em;opacity:.7;font-weight:400;}
+.tile.sel .tile-label{color:var(--washi);}
+.tile.sel .tile-label .t-op{opacity:.55;}
+.tile-label.neg .t-num{color:var(--red);}
+.tile.sel .tile-label.neg .t-num{color:#f4a09a;}
+
+@keyframes cf{0%,100%{background:var(--ink);}50%{background:var(--red);border-color:var(--red);}}
+.flash{animation:cf .45s ease;}
+@keyframes hpulse{0%,100%{box-shadow:0 0 0 0 rgba(184,50,40,0);}50%{box-shadow:0 0 0 5px rgba(184,50,40,.35);}}
+.hinted{animation:hpulse 1s ease 3;}
+
+/* CONTROLS — fixed: all buttons same height, equal padding, no flex-grow distortion */
+.controls{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:center;
+  margin-bottom:24px;
+  width:100%;
+  max-width:420px;
+}
+.btn{
+  font-family:'Noto Serif JP',serif;
+  font-size:12px;
+  letter-spacing:1px;
+  /* Explicit equal padding on all sides — no height variation */
+  padding:0 16px;
+  height:40px;
+  line-height:40px; /* vertical centering without flex weirdness */
+  border:1px solid var(--paper-mid);
+  background:var(--paper);
+  color:var(--ink);
+  border-radius:6px;
+  cursor:pointer;
+  transition:all .12s ease;
+  white-space:nowrap;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  /* Don't stretch — use fixed width or auto */
+  flex:0 0 auto;
+}
+.btn:hover{background:var(--paper-mid);border-color:#c8bfb0;}
+.btn:active{transform:scale(.96);}
+.btn.primary{background:var(--ink);color:var(--washi);border-color:var(--ink);}
+.btn.primary:hover{background:#2e2820;}
+
+/* FOUND LIST */
+.found-sec{width:100%;max-width:420px;}
+.found-lbl{font-size:10px;letter-spacing:3px;color:var(--muted);margin-bottom:10px;}
+.combo-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 12px;background:var(--red-soft);
+  border-left:2px solid var(--red);border-radius:0 4px 4px 0;
+  margin-bottom:6px;font-size:clamp(11px,3vw,13px);
+  animation:si .25s ease;
+}
+@keyframes si{from{transform:translateX(-6px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+.combo-tiles{font-family:'Kaisei Opti',serif;color:var(--indigo);}
+.combo-eq{color:var(--red);font-size:11px;letter-spacing:1px;}
+
+/* MODALS */
+.mo{display:none;position:fixed;inset:0;background:rgba(20,16,12,.7);z-index:100;align-items:center;justify-content:center;padding:16px;}
+.mo.on{display:flex;}
+.mb{
+  background:var(--washi);border-radius:12px;
+  padding:clamp(20px,5vw,28px) clamp(18px,5vw,28px) 20px;
+  max-width:300px;width:100%;text-align:center;
+  max-height:85vh;overflow-y:auto;
+  box-shadow:0 20px 60px rgba(20,16,12,.4);
+}
+.mk{font-family:'Kaisei Opti',serif;font-size:30px;color:var(--red);margin-bottom:6px;line-height:1;}
+.mt{font-family:'Kaisei Opti',serif;font-size:17px;font-weight:700;color:var(--ink);margin-bottom:12px;}
+.mbody{font-size:13px;line-height:1.85;color:var(--muted);margin-bottom:16px;}
+.mbody ol{text-align:left;padding-left:16px;}
+.mbody li{margin-bottom:6px;color:var(--ink);}
+.mex{background:var(--paper);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--indigo);margin:6px 0;font-family:'Kaisei Opti',serif;line-height:1.6;}
+.sol-row{padding:7px 0;border-bottom:1px solid var(--paper-mid);font-size:13px;font-family:'Kaisei Opti',serif;text-align:left;color:var(--ink);}
+.share-box{
+  background:var(--paper);border-radius:8px;padding:14px;
+  font-family:'Kaisei Opti',serif;font-size:13px;color:var(--indigo);
+  white-space:pre-wrap;text-align:left;line-height:1.8;
+  margin-bottom:14px;border:1px solid var(--paper-mid);word-break:break-word;
+}
+.copy-note{font-size:11px;color:var(--muted);margin-bottom:12px;letter-spacing:1px;}
+.modal-btns{display:flex;gap:8px;justify-content:center;}
+.modal-btns .btn{flex:0 0 auto;}
+.btn-full{width:100%;padding:0 16px;height:40px;line-height:40px;}
+</style>
+
+<div id="gr">
+  <header class="hdr">
+    <div class="hdr-eyebrow">十 · 三 · 一</div>
+    <div class="hdr-title">10-3-1</div>
+    <div class="hdr-rule"></div>
+  </header>
+
+  <div class="tgt-wrap">
+    <div class="tgt-label">目標 · TARGET</div>
+    <div class="tgt-num" id="tgt">—</div>
+    <div class="tgt-under"></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><span class="stat-n" id="s-found">0</span><span class="stat-l">found</span></div>
+    <div class="stat"><span class="stat-n" id="s-total">?</span><span class="stat-l">total</span></div>
+    <div class="stat"><span class="stat-n" id="s-hint">3</span><span class="stat-l">hints</span></div>
+  </div>
+  <div class="pb-wrap"><div class="pb-fill" id="pb" style="width:0"></div></div>
+
+  <div class="sel-area" id="sel-area"><span class="sel-placeholder">select three tiles</span></div>
+  <div class="res-msg" id="res-msg"> </div>
+
+  <div class="tiles-grid" id="tiles-grid"></div>
+
+  <div class="controls">
+    <button class="btn" onclick="doClear()">Clear</button>
+    <button class="btn" onclick="doHint()">Hint</button>
+    <button class="btn" onclick="openM('how')">How to Play</button>
+    <button class="btn primary" onclick="doNew()">New Game</button>
+  </div>
+
+  <div class="found-sec" id="found-sec"></div>
+
+  <!-- How modal -->
+  <div class="mo" id="m-how">
+    <div class="mb">
+      <div class="mk">遊</div>
+      <div class="mt">How to Play</div>
+      <div class="mbody">
+        <ol>
+          <li>Select 3 tiles in order to match the target</li>
+          <li>The first tile's operator is ignored — only its number counts</li>
+          <li>× and ÷ are calculated before + and −</li>
+          <li>Order matters — same tiles in different order = different combo</li>
+          <li>Find every valid combination to win</li>
+        </ol>
+        <div class="mex">Target 12 → [−7] [+10] [÷2]<br>= 7 + 10÷2 = 7 + 5 = 12 ✓</div>
+        <div class="mex">Target 5 → [×3] [−2] [+4]<br>= 3 − 2 + 4 = 5 ✓</div>
+      </div>
+      <button class="btn primary btn-full" onclick="closeM('how')">Start Playing</button>
+    </div>
+  </div>
+
+  <!-- Win modal -->
+  <div class="mo" id="m-win">
+    <div class="mb">
+      <div class="mk">勝</div>
+      <div class="mt">Victory!</div>
+      <div class="mbody">All combinations found.<br>完全勝利。</div>
+      <div class="modal-btns" style="margin-bottom:10px">
+        <button class="btn" onclick="openSol()">Solutions</button>
+        <button class="btn" onclick="openShare()">Share</button>
+      </div>
+      <button class="btn primary btn-full" onclick="doNew();closeM('win')">New Game</button>
+    </div>
+  </div>
+
+  <!-- Solutions modal -->
+  <div class="mo" id="m-sol">
+    <div class="mb">
+      <div class="mk">解</div>
+      <div class="mt">All Solutions</div>
+      <div id="sol-list" class="mbody" style="text-align:left;max-height:260px;overflow-y:auto;margin-bottom:14px;"></div>
+      <button class="btn primary btn-full" onclick="closeM('sol')">Close</button>
+    </div>
+  </div>
+
+  <!-- Share modal -->
+  <div class="mo" id="m-share">
+    <div class="mb">
+      <div class="mk">共</div>
+      <div class="mt">Share Result</div>
+      <div class="share-box" id="share-text"></div>
+      <div class="copy-note" id="copy-note">tap to copy to clipboard</div>
+      <div class="modal-btns">
+        <button class="btn" id="copy-btn" onclick="doCopy()">Copy</button>
+        <button class="btn primary" onclick="closeM('share')">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const Analytics={_log:[],track(e,d={}){this._log.push({event:e,ts:Date.now(),...d});},summary(){return{hints:this._log.filter(e=>e.event==='hint_used').length,wrong:this._log.filter(e=>e.event==='incorrect_attempt').length,correct:this._log.filter(e=>e.event==='combo_found').length};}};
+
+function evalCombo(t0,t1,t2){
+  const terms=[{val:t0.num,op:null},{val:t1.num,op:t1.op},{val:t2.num,op:t2.op}];
+  const stack=[terms[0].val],addOps=[];
+  for(let i=1;i<3;i++){const{val,op}=terms[i];if(op==='×'||op==='÷'){const top=stack.pop();if(op==='÷'){if(val===0)return null;stack.push(top/val);}else stack.push(top*val);}else{stack.push(val);addOps.push(op);}}
+  let r=stack[0];for(let i=1;i<stack.length;i++)r=addOps[i-1]==='+'?r+stack[i]:r-stack[i];
+  return Math.round(r*1e9)/1e9;
+}
+
+let G={tiles:[],target:0,selected:[],found:new Set(),all:[],hints:3,startedAt:null};
+
+function rng(seed){let s=seed>>>0;return()=>{s=Math.imul(1664525,s)+1013904223>>>0;return s/4294967296;};}
+function daySeed(){const d=new Date();return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();}
+
+function makePuzzle(seed){
+  const r=rng(seed),OPS=['+','-','×','÷'];
+  let tiles,target,combos,tries=0;
+  do{
+    const seen=new Set();tiles=[];let att=0;
+    while(tiles.length<10&&att<200){att++;const op=OPS[Math.floor(r()*4)];let num;if(op==='÷')num=[2,3,4,5][Math.floor(r()*4)];else if(op==='×')num=Math.floor(r()*4)+2;else num=Math.floor(r()*12)+1;const k=op+num;if(seen.has(k))continue;seen.add(k);tiles.push({op,num,id:tiles.length});}
+    if(tiles.length<10){r();tries++;continue;}
+    target=Math.floor(r()*21)-5;combos=findAll(tiles,target);tries++;
+  }while(combos.length<2&&tries<150);
+  return{tiles,target,combos};
+}
+
+function findAll(tiles,target){
+  const results=[],n=tiles.length;
+  for(let a=0;a<n;a++)for(let b=0;b<n;b++)if(b!==a)for(let c=0;c<n;c++)if(c!==a&&c!==b){const val=evalCombo(tiles[a],tiles[b],tiles[c]);if(val!==null&&Math.abs(val-target)<0.0001)results.push({key:`${tiles[a].id}-${tiles[b].id}-${tiles[c].id}`,label:`${tiles[a].op}${tiles[a].num} ${tiles[b].op}${tiles[b].num} ${tiles[c].op}${tiles[c].num}`});}
+  return results;
+}
+
+function render(){
+  document.getElementById('tgt').textContent=G.target;
+  document.getElementById('s-found').textContent=G.found.size;
+  document.getElementById('s-total').textContent=G.all.length;
+  document.getElementById('s-hint').textContent=G.hints;
+  document.getElementById('pb').style.width=(G.all.length?G.found.size/G.all.length*100:0)+'%';
+  renderTiles();renderSel();renderFound();
+}
+
+function renderTiles(){
+  const grid=document.getElementById('tiles-grid');grid.innerHTML='';
+  const selIds=new Set(G.selected.map(t=>t.id));
+  G.tiles.forEach(tile=>{
+    const el=document.createElement('div');
+    el.className='tile'+(selIds.has(tile.id)?' sel':'');
+    el.id='tile-'+tile.id;el.tabIndex=0;
+    el.setAttribute('role','button');el.setAttribute('aria-label',`${tile.op}${tile.num}`);
+    const lbl=document.createElement('div');
+    lbl.className='tile-label'+(tile.num<0?' neg':'');
+    const opS=document.createElement('span');opS.className='t-op';opS.textContent=tile.op;
+    const numS=document.createElement('span');numS.className='t-num';numS.textContent=tile.num;
+    lbl.appendChild(opS);lbl.appendChild(numS);el.appendChild(lbl);
+    el.addEventListener('click',()=>clickTile(tile));
+    el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();clickTile(tile);}});
+    grid.appendChild(el);
+  });
+}
+
+function renderSel(){
+  const area=document.getElementById('sel-area');
+  if(!G.selected.length){area.innerHTML='<span class="sel-placeholder">select three tiles</span>';return;}
+  area.innerHTML=G.selected.map((t,i)=>`<span class="sel-tok">${i===0?t.num:`${t.op}${t.num}`}</span>${i<G.selected.length-1?'<span class="sel-arrow">→</span>':''}`).join('');
+}
+
+function renderFound(){
+  const sec=document.getElementById('found-sec');sec.innerHTML='';
+  if(!G.found.size)return;
+  const lbl=document.createElement('div');lbl.className='found-lbl';lbl.textContent='発見済み · Found Combinations';sec.appendChild(lbl);
+  G.found.forEach(key=>{const combo=G.all.find(c=>c.key===key);if(!combo)return;const row=document.createElement('div');row.className='combo-row';row.innerHTML=`<span class="combo-tiles">${combo.label}</span><span class="combo-eq">= ${G.target}</span>`;sec.appendChild(row);});
+}
+
+function clickTile(tile){
+  const idx=G.selected.findIndex(t=>t.id===tile.id);
+  if(idx>=0){G.selected.splice(idx,1);setMsg('','');render();return;}
+  if(G.selected.length>=3)return;
+  G.selected.push(tile);render();
+  if(G.selected.length===3)setTimeout(check,80);
+}
+
+function check(){
+  const[t0,t1,t2]=G.selected;
+  const val=evalCombo(t0,t1,t2);
+  const key=`${t0.id}-${t1.id}-${t2.id}`;
+  if(val!==null&&Math.abs(val-G.target)<0.0001){
+    if(G.found.has(key)){Analytics.track('duplicate_attempt');setMsg('Already found','wrong');setTimeout(doClear,900);return;}
+    G.found.add(key);Analytics.track('combo_found',{found:G.found.size,total:G.all.length});
+    setMsg('Correct!','ok');
+    [t0,t1,t2].forEach(t=>{const el=document.getElementById('tile-'+t.id);if(el){el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),450);}});
+    setTimeout(()=>{doClear();render();if(G.found.size>=G.all.length){Analytics.track('puzzle_solved',{hints:3-G.hints,elapsed:Date.now()-G.startedAt});setTimeout(()=>openM('win'),400);}},700);
+  }else{
+    Analytics.track('incorrect_attempt',{val,target:G.target});
+    setMsg(`Incorrect${val!==null?' (= '+val+')':''}`, 'wrong');
+    setTimeout(doClear,800);
+  }
+}
+
+function doClear(){G.selected=[];setMsg('','');render();}
+
+function doHint(){
+  if(G.hints<=0){setMsg('No hints left','wrong');return;}
+  const unfound=G.all.filter(c=>!G.found.has(c.key));
+  if(!unfound.length){setMsg('All found!','ok');return;}
+  G.hints--;Analytics.track('hint_used',{hintsRemaining:G.hints});
+  const pick=unfound[Math.floor(Math.random()*unfound.length)];
+  const firstId=parseInt(pick.key.split('-')[0]);
+  const tile=G.tiles.find(t=>t.id===firstId);
+  const el=document.getElementById('tile-'+firstId);
+  if(el){el.classList.add('hinted');setTimeout(()=>el.classList.remove('hinted'),3200);}
+  setMsg(`Hint: start with ${tile.op}${tile.num}`,'ok');render();
+}
+
+function doNew(){
+  const p=makePuzzle(Date.now());
+  G={tiles:p.tiles,target:p.target,selected:[],found:new Set(),all:p.combos,hints:3,startedAt:Date.now()};
+  Analytics.track('game_start',{target:p.target,total:p.combos.length});
+  setMsg('','');render();
+}
+
+function setMsg(txt,cls){const el=document.getElementById('res-msg');el.textContent=txt||' ';el.className='res-msg'+(cls?' '+cls:'');}
+function openM(id){document.getElementById('m-'+id).classList.add('on');}
+function closeM(id){document.getElementById('m-'+id).classList.remove('on');}
+
+function openSol(){
+  document.getElementById('sol-list').innerHTML=G.all.map((c,i)=>`<div class="sol-row">${i+1}. ${c.label} = ${G.target}</div>`).join('');
+  closeM('win');openM('sol');
+}
+
+function buildShareText(){
+  const hintsUsed=3-G.hints,found=G.found.size,total=G.all.length,pct=total>0?Math.round(found/total*100):0;
+  const dots=Array.from({length:total},(_,i)=>i<found?'🟥':'⬜').join('');
+  const d=new Date(),dateStr=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return[`10-3-1 · ${dateStr}`,``,`Target: ${G.target}`,`Found: ${found}/${total} combos (${pct}%)`,`Hints used: ${hintsUsed}`,``,dots,``,`Play at: 10-3-1`].join('\n');
+}
+
+function openShare(){
+  const txt=buildShareText();
+  document.getElementById('share-text').textContent=txt;
+  document.getElementById('copy-note').textContent='tap to copy to clipboard';
+  document.getElementById('copy-btn').textContent='Copy';
+  closeM('win');openM('share');
+}
+
+function doCopy(){
+  const txt=document.getElementById('share-text').textContent;
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>{document.getElementById('copy-btn').textContent='Copied!';document.getElementById('copy-note').textContent='✓ copied';Analytics.track('share_copied');}).catch(()=>fallbackCopy(txt));}
+  else fallbackCopy(txt);
+}
+function fallbackCopy(txt){const ta=document.createElement('textarea');ta.value=txt;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');document.getElementById('copy-btn').textContent='Copied!';Analytics.track('share_copied');}catch{}document.body.removeChild(ta);}
+
+(function init(){
+  const p=makePuzzle(daySeed());
+  G={tiles:p.tiles,target:p.target,selected:[],found:new Set(),all:p.combos,hints:3,startedAt:Date.now()};
+  Analytics.track('game_start',{target:p.target,total:p.combos.length,seed:'daily'});
+  render();openM('how');
+})();
+</script>
