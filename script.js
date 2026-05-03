@@ -12,6 +12,61 @@ const Analytics = {
   },
 };
 
+let AppStats = {
+  played: 0,
+  wins: 0,
+  currentStreak: 0,
+  bestStreak: 0,
+  totalHintsUsed: 0,
+  totalSolutionsFound: 0,
+  lastDailyWinDate: null
+};
+
+function loadStats() {
+  try {
+    const s = localStorage.getItem("1031_stats");
+    if (s) Object.assign(AppStats, JSON.parse(s));
+  } catch (e) {}
+}
+
+function saveStats() {
+  localStorage.setItem("1031_stats", JSON.stringify(AppStats));
+}
+
+function recordGameStart() {
+  AppStats.played++;
+  saveStats();
+}
+
+function recordGameWin(hintsUsed, totalFound) {
+  AppStats.wins++;
+  AppStats.totalHintsUsed += hintsUsed;
+  AppStats.totalSolutionsFound += totalFound;
+
+  if (G.mode === "daily") {
+    const d = new Date();
+    const today = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+    
+    const y = new Date();
+    y.setDate(y.getDate() - 1);
+    const yesterday = y.getFullYear() * 10000 + (y.getMonth() + 1) * 100 + y.getDate();
+
+    if (AppStats.lastDailyWinDate === yesterday) {
+      AppStats.currentStreak++;
+    } else if (AppStats.lastDailyWinDate !== today) {
+      AppStats.currentStreak = 1;
+    }
+    
+    AppStats.lastDailyWinDate = today;
+    if (AppStats.currentStreak > AppStats.bestStreak) {
+      AppStats.bestStreak = AppStats.currentStreak;
+    }
+  }
+
+  saveStats();
+}
+
+
 function evalCombo(t0, t1, t2) {
   const terms = [
     { val: t0.num, op: null },
@@ -124,6 +179,7 @@ function getSaveKey() {
 }
 
 function saveGame() {
+  localStorage.setItem("1031_last_mode", G.mode);
   if (G.found.size >= G.all.length && G.all.length > 0) {
     localStorage.removeItem(getSaveKey());
     return;
@@ -315,6 +371,7 @@ function check() {
           elapsed: Date.now() - G.startedAt,
         });
         saveHistory();
+        recordGameWin(3 - G.hints, G.all.length);
         localStorage.removeItem(getSaveKey());
         setTimeout(() => openM("win"), 400);
       }
@@ -372,6 +429,7 @@ function doDaily() {
       mode: "daily",
       seed: seed,
     };
+    recordGameStart();
   } else {
     G.mode = "daily";
   }
@@ -399,6 +457,7 @@ function doRandom() {
       mode: "unlimited",
       seed: seed,
     };
+    recordGameStart();
   } else {
     G.mode = "unlimited";
   }
@@ -425,6 +484,7 @@ function doNewRandom() {
     mode: "unlimited",
     seed: seed,
   };
+  recordGameStart();
   saveGame();
   render();
 }
@@ -486,6 +546,23 @@ function openHistory() {
     listEl.innerHTML = '<div class="mbody">Could not load history.</div>';
   }
   openM("history");
+}
+
+function openStats() {
+  loadStats();
+  document.getElementById("st-played").textContent = AppStats.played;
+  const wr = AppStats.played > 0 ? Math.round((AppStats.wins / AppStats.played) * 100) : 0;
+  document.getElementById("st-winrate").textContent = wr + "%";
+  document.getElementById("st-streak").textContent = AppStats.currentStreak;
+  document.getElementById("st-maxstreak").textContent = AppStats.bestStreak;
+  
+  const avgH = AppStats.wins > 0 ? (AppStats.totalHintsUsed / AppStats.wins).toFixed(1) : "0.0";
+  const avgS = AppStats.wins > 0 ? (AppStats.totalSolutionsFound / AppStats.wins).toFixed(1) : "0.0";
+  
+  document.getElementById("st-avghint").textContent = avgH;
+  document.getElementById("st-avgfound").textContent = avgS;
+  
+  openM("stats");
 }
 
 function buildShareText() {
@@ -569,17 +646,18 @@ function loadTheme() {
 
 (function init() {
   loadTheme();
+  loadStats();
 
-  // Try to load last active mode or default to daily
   let lastMode = "daily";
   try {
-    const dailyData = localStorage.getItem("1031_save_daily");
-    const unlimitedData = localStorage.getItem("1031_save_unlimited");
-    // If they have an active unlimited game, maybe prefer that?
-    // Let's just stick to daily as default unless they click Random
+    lastMode = localStorage.getItem("1031_last_mode") || "daily";
   } catch (e) {}
 
-  doDaily();
+  if (lastMode === "unlimited") {
+    doRandom();
+  } else {
+    doDaily();
+  }
   
   if (window.lucide) {
     lucide.createIcons();

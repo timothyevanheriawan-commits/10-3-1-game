@@ -587,3 +587,31 @@ body.dark-mode #theme-toggle {
   color: var(--ink);
   font-weight: bold;
 }
+
+/* STATS MODAL */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 8px;
+}
+.s-box {
+  background: var(--paper);
+  border: 1px solid var(--paper-mid);
+  border-radius: 6px;
+  padding: 12px 8px;
+  text-align: center;
+}
+.s-val {
+  font-family: "Kaisei Opti", serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.s-lbl {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--muted);
+  margin-top: 4px;
+}

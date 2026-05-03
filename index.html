@@ -7,9 +7,9 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <meta name="theme-color" content="#f4efe6" />
-    <meta name="description" content="10-3-1 is a daily math puzzle game. Combine numbers using basic operations to reach the target. Play daily or unlimited random puzzles!" />
+    <meta name="description" content="10-3-1 is a daily math puzzle game. Combine numbers to hit the target using logic. Build your streak and train your brain!" />
     <meta property="og:title" content="10-3-1 Game" />
-    <meta property="og:description" content="A daily math puzzle. Combine numbers to reach the target!" />
+    <meta property="og:description" content="10-3-1 is a daily math puzzle game. Combine numbers to hit the target using logic. Build your streak and train your brain!" />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://10-3-1-game.vercel.app/og_banner.png" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -70,6 +70,7 @@
         <button class="btn" onclick="doClear()">Clear</button>
         <button class="btn" onclick="doHint()">Hint</button>
         <button class="btn" onclick="openSol()">Solutions</button>
+        <button class="btn" onclick="openStats()">Stats</button>
         <button class="btn" onclick="openHistory()">History</button>
         <button class="btn" onclick="openM('how')">How to Play</button>
       </div>
@@ -163,6 +164,45 @@
             style="max-height: 260px; overflow-y: auto; margin-bottom: 14px"
           ></div>
           <button class="btn primary btn-full" onclick="closeM('history')">
+            Close
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats modal -->
+      <div class="mo" id="m-stats">
+        <div class="mb">
+          <div class="mk">計</div>
+          <div class="mt">Statistics</div>
+          <div class="mbody" style="margin-bottom: 14px">
+            <div class="stats-grid">
+              <div class="s-box">
+                <div class="s-val" id="st-played">0</div>
+                <div class="s-lbl">Played</div>
+              </div>
+              <div class="s-box">
+                <div class="s-val" id="st-winrate">0%</div>
+                <div class="s-lbl">Win %</div>
+              </div>
+              <div class="s-box">
+                <div class="s-val" id="st-streak">0</div>
+                <div class="s-lbl">Streak</div>
+              </div>
+              <div class="s-box">
+                <div class="s-val" id="st-maxstreak">0</div>
+                <div class="s-lbl">Max Streak</div>
+              </div>
+              <div class="s-box">
+                <div class="s-val" id="st-avghint">0.0</div>
+                <div class="s-lbl">Avg Hints</div>
+              </div>
+              <div class="s-box">
+                <div class="s-val" id="st-avgfound">0.0</div>
+                <div class="s-lbl">Avg Found</div>
+              </div>
+            </div>
+          </div>
+          <button class="btn primary btn-full" onclick="closeM('stats')">
             Close
           </button>
         </div>
